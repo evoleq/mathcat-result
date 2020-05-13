@@ -66,3 +66,20 @@ kotlin {
 }
 
 
+tasks{
+    val licenseFormatJsMain by creating(com.hierynomus.gradle.license.tasks.LicenseFormat::class) {
+        source = fileTree("$projectDir/src/jsMain/kotlin") {
+        }
+        group = "license"
+    }
+    val licenseFormatCommonMain by creating(com.hierynomus.gradle.license.tasks.LicenseFormat::class) {
+        source = fileTree("$projectDir/src/commonMain/kotlin") {
+        }
+        group = "license"
+    }
+    licenseFormat {
+        finalizedBy(licenseFormatJsMain, licenseFormatCommonMain)
+    }
+}
+
+
