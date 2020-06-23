@@ -15,6 +15,7 @@
  */
 package org.evoleq.math.cat.monad.result
 
+import org.evoleq.math.cat.marker.MathCatDsl
 
 
 sealed class Result<out S, F> {
@@ -52,3 +53,23 @@ sealed class Result<out S, F> {
             Failure(value)
     }
 }
+/**
+ * Apply function of the applicative [Result]
+ */
+@MathCatDsl
+fun <S,T, F> Result<(S)->T, F>.apply(): (Result<S, F>)->Result<T, F> = {
+    resultS -> when(this@apply) {
+    is Result.Failure -> Result.fail<T, F>(this@apply.value)
+    is Result.Success -> when(resultS) {
+        is Result.Failure -> Result.fail<T, F>(resultS.value)
+        is Result.Success -> Result.ret<T, F>(with(this@apply.value){this(resultS.value)})
+    }
+}
+}
+
+
+/**
+ * Apply function of the applicative [Result]
+ */
+@MathCatDsl
+infix fun <S,T, F> Result<(S)->T, F>.apply(next: Result<S, F>): Result<T, F> =  apply()(next)

@@ -17,7 +17,7 @@ package org.evoleq.math.cat.suspend.monad.result
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
-
+import org.evoleq.math.cat.marker.MathCatDsl
 
 
 sealed class Result<out S, F> {
@@ -60,3 +60,24 @@ sealed class Result<out S, F> {
     }
     
 }
+
+/**
+ * Apply function of the applicative [Result]
+ */
+@MathCatDsl
+suspend  fun <S,T, F> Result<suspend CoroutineScope.(S)->T, F>.apply(): suspend CoroutineScope.(Result<S, F>)->Result<T, F> = {
+    resultS -> when(this@apply) {
+        is Result.Failure -> Result.fail<T, F>(this@apply.value)
+        is Result.Success -> when(resultS) {
+            is Result.Failure -> Result.fail<T, F>(resultS.value)
+            is Result.Success -> Result.ret<T, F>(with(this@apply.value){this(resultS.value)})
+        }
+    }
+}
+
+
+/**
+ * Apply function of the applicative [Result]
+ */
+@MathCatDsl
+suspend infix fun <S,T, F> Result<suspend CoroutineScope.(S)->T, F>.apply(next: Result<S, F>): Result<T, F> = coroutineScope { apply()(next) }

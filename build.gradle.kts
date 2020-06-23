@@ -54,6 +54,7 @@ kotlin {
                 implementation(kotlin("stdlib-common"))
                 implementation(kotlin("reflect"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.3.5")
+                implementation(project(":mathcat-core"))
             }
         }
         val commonTest by getting {
