@@ -25,6 +25,7 @@ sealed class Result<out S, F> {
     data class Success<S, F>(val value: S) : Result<S, F>()
     data class Failure<S, F>(val value: F) : Result<S, F>()
     
+    @MathCatDsl
     suspend infix fun <S1> map(f: suspend CoroutineScope.(S)-> S1): Result<S1, F> = coroutineScope {
         when (this@Result) {
             is Success -> Success<S1, F>(
@@ -36,6 +37,7 @@ sealed class Result<out S, F> {
         }
     }
     
+    @MathCatDsl
     suspend infix fun <S1> bind(arrow: suspend CoroutineScope.(S)-> Result<S1, F>): Result<S1, F> = coroutineScope {
         when (this@Result) {
             is Failure -> Failure(
@@ -66,13 +68,7 @@ sealed class Result<out S, F> {
  */
 @MathCatDsl
 suspend  fun <S,T, F> Result<suspend CoroutineScope.(S)->T, F>.apply(): suspend CoroutineScope.(Result<S, F>)->Result<T, F> = {
-    resultS -> when(this@apply) {
-        is Result.Failure -> Result.fail<T, F>(this@apply.value)
-        is Result.Success -> when(resultS) {
-            is Result.Failure -> Result.fail<T, F>(resultS.value)
-            is Result.Success -> Result.ret<T, F>(with(this@apply.value){this(resultS.value)})
-        }
-    }
+    resultS -> this@apply bind {f -> resultS map f}
 }
 
 

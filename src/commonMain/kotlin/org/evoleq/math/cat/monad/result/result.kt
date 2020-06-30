@@ -23,6 +23,7 @@ sealed class Result<out S, F> {
     data class Success<S, F>(val value: S) : Result<S, F>()
     data class Failure<S, F>(val value: F) : Result<S, F>()
     
+    @MathCatDsl
     infix fun <S1> map(f: (S)-> S1): Result<S1, F> = when(this){
         is Success -> Success(
             f(value)
@@ -32,6 +33,7 @@ sealed class Result<out S, F> {
         )
     }
     
+    @MathCatDsl
     infix fun <S1> bind(arrow: (S)-> Result<S1, F>): Result<S1, F> = when(this){
         is Failure -> Failure(
             value
@@ -58,13 +60,7 @@ sealed class Result<out S, F> {
  */
 @MathCatDsl
 fun <S,T, F> Result<(S)->T, F>.apply(): (Result<S, F>)->Result<T, F> = {
-    resultS -> when(this@apply) {
-    is Result.Failure -> Result.fail<T, F>(this@apply.value)
-    is Result.Success -> when(resultS) {
-        is Result.Failure -> Result.fail<T, F>(resultS.value)
-        is Result.Success -> Result.ret<T, F>(with(this@apply.value){this(resultS.value)})
-    }
-}
+    resultS -> this@apply bind { f -> resultS map f}
 }
 
 
