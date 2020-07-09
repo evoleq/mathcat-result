@@ -69,3 +69,25 @@ fun <S,T, F> Result<(S)->T, F>.apply(): (Result<S, F>)->Result<T, F> = {
  */
 @MathCatDsl
 infix fun <S,T, F> Result<(S)->T, F>.apply(next: Result<S, F>): Result<T, F> =  apply()(next)
+
+@MathCatDsl
+fun <S, T, F> ResultList<(S)->T,F>.applyMonoidal(): (ResultList<S, F>)->(ResultList<T,F>) = {
+    result -> when(val currentFailures = this@applyMonoidal) {
+        is Result.Failure -> when(result) {
+            is Result.Failure -> with(result.value) failures@{
+                with(arrayListOf<F>()) {
+                    addAll(currentFailures.value)
+                    addAll(this@failures)
+                    Result.failList<T, F>(this)
+                }
+            }
+            is Result.Success -> {
+                Result.failList(currentFailures.value)
+            }
+        }
+        is Result.Success -> this@applyMonoidal.apply(result)
+    }
+}
+
+@MathCatDsl
+infix fun <S, T, F> ResultList<(S)->T,F>.applyMonoidal(next: ResultList<S, F>): (ResultList<T,F>) = applyMonoidal()(next)

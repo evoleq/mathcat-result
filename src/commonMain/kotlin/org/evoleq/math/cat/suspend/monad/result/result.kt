@@ -77,3 +77,27 @@ suspend  fun <S,T, F> Result<suspend CoroutineScope.(S)->T, F>.apply(): suspend 
  */
 @MathCatDsl
 suspend infix fun <S,T, F> Result<suspend CoroutineScope.(S)->T, F>.apply(next: Result<S, F>): Result<T, F> = coroutineScope { apply()(next) }
+
+
+
+@MathCatDsl
+suspend fun <S, T, F> ResultList<suspend CoroutineScope.(S)->T,F>.applyMonoidal(): suspend CoroutineScope.(ResultList<S, F>)->(ResultList<T,F>) = {
+    result -> when(val currentFailures = this@applyMonoidal) {
+    is Result.Failure -> when(result) {
+        is Result.Failure -> with(result.value) failures@{
+            with(arrayListOf<F>()) {
+                addAll(currentFailures.value)
+                addAll(this@failures)
+                Result.failList<T, F>(this)
+            }
+        }
+        is Result.Success -> {
+            Result.failList(currentFailures.value)
+        }
+    }
+    is Result.Success -> this@applyMonoidal.apply(result)
+}
+}
+
+@MathCatDsl
+suspend infix fun <S, T, F> ResultList<suspend CoroutineScope.(S)->T,F>.applyMonoidal(next: ResultList<S, F>): (ResultList<T,F>) = coroutineScope { applyMonoidal()(next) }
