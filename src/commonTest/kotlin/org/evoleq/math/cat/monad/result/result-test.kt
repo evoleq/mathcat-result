@@ -6,6 +6,13 @@ import kotlin.test.assertEquals
 class ResultTest {
     
     @Test
+    fun `map functions` () {
+        val x = Result.fail<Int,String>("fail")
+        val y = x map {2}
+        assertEquals(true, y is Result.Failure<Int,String>)
+    }
+    
+    @Test
     fun `applicative functions`() {
         val f: (Boolean) -> (Int) -> Pair<Boolean,Int> = {b -> {x -> Pair(b, x)}}
         
