@@ -17,6 +17,9 @@ package org.evoleq.math.cat.suspend.monad.result
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
+import org.evoleq.math.cat.adt.Either
+import org.evoleq.math.cat.adt.Left
+import org.evoleq.math.cat.adt.Right
 import org.evoleq.math.cat.marker.MathCatDsl
 
 
@@ -101,3 +104,15 @@ suspend fun <S, T, F> ResultList<suspend CoroutineScope.(S)->T,F>.applyMonoidal(
 
 @MathCatDsl
 suspend infix fun <S, T, F> ResultList<suspend CoroutineScope.(S)->T,F>.applyMonoidal(next: ResultList<S, F>): (ResultList<T,F>) = coroutineScope { applyMonoidal()(next) }
+
+@MathCatDsl
+fun <T, F> Result<T, F>.toEither(): Either<F, T> = when(this){
+    is Result.Failure -> Left(value)
+    is Result.Success -> Right(value)
+}
+
+@MathCatDsl
+fun <F, T> Either<F, T>.toResult(): Result<T, F> = when(this) {
+    is Left -> Result.Failure(value)
+    is Right -> Result.Success(value)
+}

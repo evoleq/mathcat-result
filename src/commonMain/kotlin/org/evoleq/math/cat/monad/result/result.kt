@@ -15,6 +15,9 @@
  */
 package org.evoleq.math.cat.monad.result
 
+import org.evoleq.math.cat.adt.Either
+import org.evoleq.math.cat.adt.Left
+import org.evoleq.math.cat.adt.Right
 import org.evoleq.math.cat.marker.MathCatDsl
 
 
@@ -91,3 +94,15 @@ fun <S, T, F> ResultList<(S)->T,F>.applyMonoidal(): (ResultList<S, F>)->(ResultL
 
 @MathCatDsl
 infix fun <S, T, F> ResultList<(S)->T,F>.applyMonoidal(next: ResultList<S, F>): (ResultList<T,F>) = applyMonoidal()(next)
+
+@MathCatDsl
+fun <T, F> Result<T, F>.toEither(): Either<F, T> = when(this){
+    is Result.Failure -> Left(value)
+    is Result.Success -> Right(value)
+}
+
+@MathCatDsl
+fun <F, T> Either<F, T>.toResult(): Result<T, F> = when(this) {
+    is Left -> Result.Failure(value)
+    is Right -> Result.Success(value)
+}
